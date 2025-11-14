@@ -9,7 +9,7 @@ const M3ToSnowflakeConverter = () => {
   const [error, setError] = useState('');
 
   const mapM3TypeToSnowflake = (property, propName) => {
-    const { type, format, maximum, minimum, maxLength, title } = property;
+    const { type, format, maximum, title } = property;
     const description = property.description?.toLowerCase() || '';
     const titleLower = title?.toLowerCase() || '';
     
