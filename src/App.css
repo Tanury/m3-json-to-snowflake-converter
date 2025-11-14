@@ -1,38 +1,245 @@
-.App {
-  text-align: center;
+/* Reset and global styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(to bottom right, #eef2ff, #e0e7ff);
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  padding: 1.5rem;
+  color: #111827;
+}
+
+/* Container */
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Card styles */
+.card {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+/* Headers */
+h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1e1b4b;
+  margin-bottom: 0.5rem;
+}
+
+h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Description text */
+.text-muted {
+  color: #6b7280;
+}
+
+/* Input areas */
+input[type="text"],
+textarea {
+  width: 100%;
+  padding: 0.75rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+  resize: none;
+  background-color: white;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+textarea {
+  height: 24rem;
+}
+
+textarea:focus,
+input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+/* Buttons (base) */
+button {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  gap: 6px;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Primary button */
+button.primary {
+  background-color: #4f46e5;
   color: white;
+  padding: 0.9rem;
+  width: 100%;
+  font-weight: 600;
+  box-shadow: 0 3px 6px rgba(79, 70, 229, 0.3);
 }
 
-.App-link {
-  color: #61dafb;
+button.primary:hover {
+  background-color: #4338ca;
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.4);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+button.primary:active {
+  transform: scale(0.97);
+}
+
+/* Secondary small buttons */
+button.small,
+label.upload-label {
+  background-color: #f3f4f6;
+  color: #111827;
+  font-size: 0.85rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+button.small:hover,
+label.upload-label:hover {
+  background-color: #e5e7eb;
+}
+
+/* Upload label */
+.upload-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.upload-label input {
+  display: none;
+}
+
+/* Download button */
+button.download {
+  background-color: #dcfce7;
+  color: #166534;
+  font-weight: 600;
+  padding: 0.6rem 1rem;
+  box-shadow: 0 2px 5px rgba(22, 101, 52, 0.2);
+}
+
+button.download:hover {
+  background-color: #bbf7d0;
+  transform: translateY(-1px);
+}
+
+/* Copy button */
+button.copy {
+  background-color: #4b5563;
+  color: white;
+  padding: 0.5rem 0.8rem;
+}
+
+button.copy:hover {
+  background-color: #374151;
+}
+
+/* Button group */
+.button-group {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.button-group button {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* Error message */
+.error-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-top: 1rem;
+  color: #b91c1c;
+  font-size: 0.9rem;
+}
+
+/* Mapping Reference Table */
+.mapping-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.mapping-grid span {
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Smooth hover scaling for interactive elements */
+button:hover,
+label.upload-label:hover {
+  transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 1rem;
   }
-  to {
-    transform: rotate(360deg);
+
+  textarea {
+    height: 18rem;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  button.primary {
+    width: 100%;
   }
 }
