@@ -9,7 +9,7 @@ const M3ToSnowflakeConverter = () => {
   const [error, setError] = useState('');
 
   const mapM3TypeToSnowflake = (property, propName) => {
-    const { type, format, maxLength, maximum, multipleOf } = property;
+    const { type, format, maximum, multipleOf } = property;
     const dateTimeFormat = property['x-dateTimeFormat'];
     
     // Handle format-based datetime (only if format is explicitly set)
