@@ -9,39 +9,16 @@ const M3ToSnowflakeConverter = () => {
   const [error, setError] = useState('');
 
   const mapM3TypeToSnowflake = (property, propName) => {
-    const { type, format, maximum, title } = property;
-    const description = property.description?.toLowerCase() || '';
-    const titleLower = title?.toLowerCase() || '';
+    const { type, format, maxLength, maximum, multipleOf } = property;
+    const dateTimeFormat = property['x-dateTimeFormat'];
     
-    // Handle date-time formats - Standard/American/Three-character month
-    if (format === 'date-time' || titleLower.includes('datetime') || description.includes('datetime')) {
+    // Handle format-based datetime (only if format is explicitly set)
+    if (format === 'date-time') {
       return 'DATETIME';
     }
     
-    // Handle dates - Standard/American/Basic format
-    if (titleLower.includes('date') || description.includes('date')) {
-      // Check if it's stored as integer (YYYYMMDD format common in M3)
-      if (type === 'integer' && maximum && maximum <= 99999999) {
-        return 'DATE';
-      }
-      return 'DATE';
-    }
-    
-    // Handle time - Standard format (stored as integer HHMMSS)
-    if (titleLower.includes('time') || description.includes('time')) {
-      // Epoch millis should be NUMBER
-      if (property['x-dateTimeFormat'] === 'epoch-millis') {
-        return 'NUMBER';
-      }
-      // Other time formats stored as integers
-      if (type === 'integer') {
-        return 'TIME';
-      }
-      return 'STRING';
-    }
-    
-    // Handle epoch datetime (stored as NUMBER not TIMESTAMP)
-    if (property['x-dateTimeFormat'] === 'epoch-millis') {
+    // Handle epoch datetime (special case with x-dateTimeFormat)
+    if (dateTimeFormat === 'epoch-millis') {
       return 'NUMBER';
     }
     
@@ -50,27 +27,66 @@ const M3ToSnowflakeConverter = () => {
       return 'BOOLEAN';
     }
     
-    // Handle integer - ALL integers map to NUMBER in Snowflake
+    // Handle integer - ALL integers map to NUMBER (no precision)
     if (type === 'integer') {
-      return 'NUMBER';
+      return 'INTEGER';
     }
     
-    // Handle number (decimal)
+    // Handle number (decimal) - show precision/scale ONLY if decimals present
     if (type === 'number') {
+      // Check if multipleOf has decimals
+      let hasDecimals = false;
+      let scale = 0;
+      
+      if (multipleOf && multipleOf.toString().includes('.')) {
+        hasDecimals = true;
+        const decimalPart = multipleOf.toString().split('.')[1];
+        scale = decimalPart ? decimalPart.length : 0;
+      }
+      
+      // If no decimals in multipleOf, check maximum
+      if (!hasDecimals && maximum && maximum.toString().includes('.')) {
+        hasDecimals = true;
+        const decimalPart = maximum.toString().split('.')[1];
+        scale = decimalPart ? decimalPart.length : 0;
+      }
+      
+      // Only show precision/scale if decimals are present
+      if (hasDecimals) {
+        // Calculate precision from maximum
+        let precision = 38;
+        if (maximum) {
+          const maxStr = maximum.toString().replace('E', 'e');
+          // Handle scientific notation
+          if (maxStr.includes('e')) {
+            const [mantissa, exponent] = maxStr.split('e');
+            const exp = parseInt(exponent);
+            precision = Math.abs(exp) + mantissa.replace('.', '').replace('-', '').length;
+          } else {
+            precision = maxStr.replace('.', '').replace('-', '').length;
+          }
+        }
+        
+        precision = Math.min(precision, 38);
+        
+        return `NUMBER(${precision}, ${scale})`;
+      }
+      
       return 'NUMBER';
     }
     
-    // Handle string
+    // Handle string - just STRING, no length
     if (type === 'string') {
       return 'STRING';
     }
     
-    // Handle object type
+    // Handle object
     if (type === 'object') {
       return 'STRING';
     }
     
-    return 'STRING'; // Default fallback
+    // Default fallback
+    return 'STRING';
   };
 
   const convertToSnowflake = () => {
@@ -116,9 +132,9 @@ const M3ToSnowflakeConverter = () => {
       
       sql += ';\n';
       
-      // Add primary key if we can identify it
+      // Add primary key - check for all 5 standard fields
       const pkCandidates = required.filter(r => 
-        r.includes('CONO') || r.includes('SUNO') || r.toLowerCase().includes('id')
+        ['CONO', 'SUNO', 'variationNumber', 'timestamp', 'deleted'].includes(r) || r.toLowerCase().includes('id')
       );
       
       if (pkCandidates.length > 0) {
@@ -180,17 +196,34 @@ const M3ToSnowflakeConverter = () => {
       "description": "supplier name",
       "type": "string",
       "maxLength": 36,
+      "x-position": 3
+    },
+    "variationNumber": {
+      "description": "record modification sequence",
+      "type": "integer",
+      "maximum": 9223372036854775807,
       "x-position": 4
+    },
+    "timestamp": {
+      "description": "record modification time",
+      "type": "string",
+      "format": "date-time",
+      "x-position": 5
+    },
+    "deleted": {
+      "description": "is record deleted",
+      "type": "boolean",
+      "x-position": 6
     }
   },
-  "required": ["CONO", "SUNO"]
+  "required": ["CONO", "SUNO", "variationNumber", "timestamp", "deleted"]
 }`;
     setJsonInput(example);
     setTableName('CIDMAS_SUPPLIER');
   };
 
   return (
-    <div className="w-full h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6 overflow-auto">
+    <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-lg shadow-xl p-6 mb-6">
           <h1 className="text-3xl font-bold text-indigo-900 mb-2">M3 JSON to Snowflake Converter</h1>
