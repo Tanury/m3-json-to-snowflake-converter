@@ -102,7 +102,8 @@ const M3ToSnowflakeConverter = () => {
       
       let sql = `-- Table: ${table}\n`;
       sql += `-- Description: ${schema.description || 'No description'}\n`;
-      sql += `CREATE OR REPLACE TABLE ${table} (\n`;
+      //sql += `CREATE OR REPLACE TABLE ${table} (\n`;
+      sql += `CREATE OR ALTER TABLE ${table} (\n`;
       
       const columns = [];
       
@@ -127,6 +128,7 @@ const M3ToSnowflakeConverter = () => {
       
       // Add table comment
       if (schema.description) {
+        sql += `\nCHANGE_TRACKING = TRUE`;
         sql += `\nCOMMENT = '${schema.description}'`;
       }
       
