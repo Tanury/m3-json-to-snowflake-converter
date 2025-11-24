@@ -90,14 +90,12 @@ const M3ToSnowflakeConverter = () => {
         sql += `\nCOMMENT = '${schema.description}'`;
       }
 
-      sql += ';\n';
-
       const pkCandidates = required.filter(r =>
         ['CONO', 'SUNO', 'variationNumber', 'timestamp', 'deleted'].includes(r) || r.toLowerCase().includes('id')
       );
 
       if (pkCandidates.length > 0) {
-        sql += `\n-- Primary key:\n`;
+        sql += `\n\n-- Primary key:\n`;
         sql += `-- ALTER TABLE ${table} ADD PRIMARY KEY (${pkCandidates.join(', ')});\n`;
       }
 
@@ -110,8 +108,8 @@ const M3ToSnowflakeConverter = () => {
 
   // --- Generate Silver SQL from Bronze ---
   const generateSilverFromBronze = () => {
-    if (!sqlOutput) {
-      setSilverSql('-- No bronze DDL available yet');
+    if (!jsonInput) {
+      setSilverSql('-- No JSON input available yet');
       return;
     }
 
@@ -122,7 +120,7 @@ const M3ToSnowflakeConverter = () => {
         (a, b) => (a[1]['x-position'] || 999) - (b[1]['x-position'] || 999)
       );
 
-      const sourceTable = tableName || schema.title?.toUpperCase() || 'UNKNOWN';
+      const table = tableName || schema.title?.toUpperCase().replace(/\s+/g, '_') || 'UNKNOWN_TABLE';
       const excludeCols = ['ACCOUNTINGENTITY', 'VARIATIONNUMBER', 'TIMESTAMP', 'DELETED', 'ARCHIVED', 'ROW_NUM'];
 
       // Build BRONZE select with TRIM for string columns
@@ -136,7 +134,7 @@ const M3ToSnowflakeConverter = () => {
         'ROW_NUMBER() OVER (PARTITION BY CONO, SUNO ORDER BY VARIATIONNUMBER DESC) AS ROW_NUM'
       );
 
-      let silver = `WITH BRONZE AS (\n    SELECT ${bronzeSelectLines.join(',\n           ')}\n    FROM DEV_BRONZE.M3_DBO.${sourceTable} b\n)\n\n`;
+      let silver = `CREATE OR REPLACE DYNAMIC TABLE ${table}\nTARGET_LAG= DOWNSTREAM\nWAREHOUSE={{env}}_ANALYTICS_WH\nREFRESH_MODE = INCREMENTAL\nINITIALIZE=ON_CREATE\nAS\nWITH BRONZE AS (\n    SELECT ${bronzeSelectLines.join(',\n           ')}\n    FROM {{env}}_BRONZE.${table} b\n)\n\n`;
 
       // Final Silver query with EXCLUDE
       silver += `SELECT *\n       EXCLUDE (${excludeCols.join(', ')})\nFROM BRONZE\nWHERE ROW_NUM = 1 AND DELETED = FALSE;\n`;
@@ -186,7 +184,7 @@ const M3ToSnowflakeConverter = () => {
   "required": ["CONO", "SUNO", "variationNumber", "timestamp", "deleted"]
 }`;
     setJsonInput(example);
-    setTableName('CIDMAS_SUPPLIER');
+    setTableName(''); // optional
   };
 
   return (
@@ -212,7 +210,7 @@ const M3ToSnowflakeConverter = () => {
             </div>
             <input
               type="text"
-              placeholder="Table Name (optional)"
+              placeholder="Full Table Name (optional, e.g., M3CE_DBO.CIDMAS)"
               value={tableName}
               onChange={(e) => setTableName(e.target.value.toUpperCase())}
               className="w-full p-2 border border-gray-300 rounded mb-3 font-mono text-sm"
