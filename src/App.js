@@ -96,6 +96,7 @@ const M3ToSnowflakeConverter = () => {
       }
 
       // NEW PK LOGIC
+      /*
       const pkCandidates = required.filter((col) => {
         const c = col.toLowerCase();
         return (
@@ -104,13 +105,13 @@ const M3ToSnowflakeConverter = () => {
           ['cono', 'faci', 'divi', 'suno', 'pono'].includes(c)
         );
       });
-/*
+
       if (pkCandidates.length > 0) {
         sql += `\n\n-- Primary key:\n`;
         sql += `-- ALTER TABLE ${table} ADD PRIMARY KEY (${pkCandidates.join(
           ', '
         )});\n`;
-      }*/
+      } */
 
       setSqlOutput(sql);
     } catch (err) {
