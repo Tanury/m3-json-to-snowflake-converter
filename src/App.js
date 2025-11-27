@@ -135,16 +135,16 @@ const M3ToSnowflakeConverter = () => {
       // PARSE schema + tableName
       let schemaName = 'M3';
       let tableOnly = '';
-      let fullTableName = '';
+      //let fullTableName = '';
 
       if (tableName.includes('.')) {
         const split = tableName.split('.');
         schemaName = split[0];
         tableOnly = split[1];
-        fullTableName = `{schemaName}.${tableOnly}`;
+        //fullTableName = `{schemaName}.${tableOnly}`;
       } else {
         tableOnly = tableName;
-        fullTableName = tableOnly;
+        //fullTableName = tableOnly;
       }
 
       const sortedProps = Object.entries(properties).sort(
