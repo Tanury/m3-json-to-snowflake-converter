@@ -135,13 +135,16 @@ const M3ToSnowflakeConverter = () => {
       // PARSE schema + tableName
       let schemaName = 'M3';
       let tableOnly = '';
+      let fullTableName = '';
 
       if (tableName.includes('.')) {
         const split = tableName.split('.');
         schemaName = split[0];
         tableOnly = split[1];
+        fullTableName = `{schemaName}.${tableOnly}`;
       } else {
         tableOnly = tableName;
+        fullTableName = tableOnly;
       }
 
       const sortedProps = Object.entries(properties).sort(
@@ -157,6 +160,7 @@ const M3ToSnowflakeConverter = () => {
       );
 
       const excludeCols = [
+        'ACCOUNTINGENTITY',
         'VARIATIONNUMBER',
         'TIMESTAMP',
         'DELETED',
@@ -177,7 +181,7 @@ const M3ToSnowflakeConverter = () => {
           ' ORDER BY VARIATIONNUMBER DESC) AS ROW_NUM'
       );
 
-      let silver = `CREATE OR REPLACE DYNAMIC TABLE ${tableOnly}
+      let silver = `CREATE OR REPLACE DYNAMIC TABLE ${schemaName}.${tableOnly}
 TARGET_LAG = DOWNSTREAM
 WAREHOUSE = {{env}}_ANALYTICS_WH
 REFRESH_MODE = INCREMENTAL
